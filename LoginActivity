@@ -1,0 +1,128 @@
+package com.example.lastproject;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.room.Room;
+
+import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+import com.example.lastproject.db.AppDatabase;
+import com.example.lastproject.db.UserLogDAO;
+
+public class LoginActivity extends AppCompatActivity {
+
+    private EditText mUsernameField;
+    private EditText mPasswordField;
+    private Button mButton;
+
+    private UserLogDAO mUserLogDAO;
+
+    private UserLog mUserLog;
+
+    private String mUsername;
+    private String mPassword;
+    private User mUser;
+
+    private Button mCreateAccountButton;
+
+    private Button mAdminButton;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+        wireUpDisplay();
+        getDatabase();
+    }
+
+    private void wireUpDisplay(){
+        mUsernameField = findViewById(R.id.editTextLoginUsername);
+        mPasswordField = findViewById(R.id.editTextLoginPassword);
+        mButton = findViewById(R.id.buttonLogin);
+        mAdminButton = findViewById(R.id.adminButton);
+        mCreateAccountButton = findViewById(R.id.createAccountButton);
+        mCreateAccountButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getValuesFromDisplay();
+                createAccount();
+            }
+        });
+        mButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getValuesFromDisplay();
+                if (checkForUserInDatabase()) {
+                    if (!validatePassword()) {
+                        Toast.makeText(LoginActivity.this, "Invalid password", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Intent intent = MainActivity.intentFactory(getApplicationContext(), mUser.getUserId());
+                        startActivity(intent);
+                    }
+                }
+            }
+        });
+
+    }
+
+    private boolean createAccount(){
+        if (mUsernameField.getText().toString().isEmpty()){
+            Toast.makeText(this, "Username cannot be empty", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if(mPasswordField.getText().toString().isEmpty()){
+            Toast.makeText(this, "Password cannot be empty", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        if(mUserLogDAO.is_taken(mUsername)){
+            Toast.makeText(this, "Username already exists", Toast.LENGTH_SHORT).show();
+        }
+        if(!mUserLogDAO.is_taken(mUsername)){
+            User newUser = new User(mUsernameField.getText().toString(), mPasswordField.getText().toString());
+            mUserLogDAO.insert(newUser);
+            Toast.makeText(this, "New User Created!", Toast.LENGTH_SHORT).show();
+        }
+        return true;
+    }
+
+    private boolean validateInput(User user){
+        if(mUser.getUserName().isEmpty() || mUser.getPassword().isEmpty()){
+            return false;
+        }
+        return true;
+    }
+    private boolean validatePassword(){
+        return mUser.getPassword().equals(mPassword);
+    }
+
+    private void getValuesFromDisplay(){
+        mUsername = mUsernameField.getText().toString();
+        mPassword = mPasswordField.getText().toString();
+
+    }
+
+    private boolean checkForUserInDatabase(){
+        mUser = mUserLogDAO.getUserByUsername(mUsername);
+        if(mUser == null){
+            Toast.makeText(this, "no user " + mUsername + " found", Toast.LENGTH_SHORT).show();
+            return false;
+        }
+        return true;
+    }
+    private void getDatabase(){
+        mUserLogDAO = Room.databaseBuilder(this, AppDatabase.class, AppDatabase.DB_NAME)
+                .allowMainThreadQueries()
+                .build()
+                .getUserLogDAO();
+    }
+
+    public static Intent intentFactory(Context context){
+        Intent intent = new Intent(context, LoginActivity.class);
+        return intent;
+    }
+}
