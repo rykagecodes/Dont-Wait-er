@@ -1,0 +1,68 @@
+package com.example.lastproject;
+
+import androidx.room.Entity;
+import androidx.room.PrimaryKey;
+
+import com.example.lastproject.db.AppDatabase;
+
+import java.util.Date;
+
+@Entity(tableName = AppDatabase.USER_TABLE)
+public class UserLog {
+    @PrimaryKey(autoGenerate = true)
+    private int mLogId;
+    private String mName;
+    private Date mDate;
+
+    private int mUserId;
+
+
+    public UserLog(String mName, int userId) {
+        this.mName = mName;
+        mDate = new Date();
+        mUserId = userId;
+    }
+
+    public int getUserId() {
+        return mUserId;
+    }
+
+    public void setUserId(int mUserId) {
+        this.mUserId = mUserId;
+    }
+
+    public int getLogId() {
+        return mLogId;
+    }
+
+    public void setLogId(int mLogId) {
+        this.mLogId = mLogId;
+    }
+
+    public String getName() {
+        return mName;
+    }
+
+    public void setName(String mName) {
+        this.mName = mName;
+    }
+
+    public Date getDate() {
+        return mDate;
+    }
+
+    public void setDate(Date mDate) {
+        this.mDate = mDate;
+    }
+
+    @Override
+    public String toString() {
+        String output;
+        output = mName;
+        output += getDate();
+        output += "\n";
+        output += "userId == " + mUserId;
+
+        return output;
+    }
+}
